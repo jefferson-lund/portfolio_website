@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(command -v nvm)",
+      "Read(//Users/jefferson.lund/**)",
+      "Bash(npm -v)",
+      "Bash(command -v brew)",
+      "Bash(curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh)",
+      "Bash(bash)",
+      "Bash(cd /Users/jefferson.lund/Projects/personal_website *)"
+    ],
+    "additionalDirectories": [
+      "/Users/jefferson.lund/Projects/personal_website/absolute-centauri/.git"
+    ]
+  }
+}
