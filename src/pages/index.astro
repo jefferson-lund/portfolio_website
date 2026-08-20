@@ -1,17 +1,190 @@
 ---
+import PortfolioLayout from '../layouts/PortfolioLayout.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import ExperienceEntry from '../components/ExperienceEntry.astro';
+import HeroAsciiField from '../components/HeroAsciiField.astro';
+import SkillPill from '../components/SkillPill.astro';
+import SocialIcons from '../components/SocialIcons.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import { site } from '../config/site';
+import { education, experience, extras, skillGroups, volunteer } from '../data/experience';
+import { projects } from '../data/projects';
 
+const [first, last] = site.name.split(' ');
+
+const snapshot = [
+	{ value: '3.8', label: 'GPA' },
+	{ value: '5', label: 'Systems integrated' },
+	{ value: '3', label: 'Languages spoken' },
+	{ value: '’27', label: 'Graduating' },
+];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<PortfolioLayout>
+	<section class="flex min-h-[88vh] items-center py-24">
+		<div class="wrap flex flex-col items-center text-center">
+			<p class="eyebrow reveal" data-speed="0.04">{site.availability}</p>
+
+			<HeroAsciiField>
+				<h1 class="display reveal mt-7 text-[clamp(3rem,11vw,7rem)]" data-speed="-0.06">
+					{first}
+					<span class="display-italic block text-accent">{last}</span>
+				</h1>
+			</HeroAsciiField>
+
+			<p class="hero-lede reveal mt-7 mx-auto">
+				Data engineering student at Utah State, linguist in the Army National Guard. At Pattern I built Airflow pipelines and warehouse
+				models that turn messy operational data into numbers people can trust. As the founder of
+				AJ Data Solutions, I bring data expertise to mid-sized companies, enabling them to save
+				time, lower costs, and find value in their existing data.
+			</p>
+
+			<div class="reveal mt-9 flex flex-wrap items-center justify-center gap-3">
+				<a class="btn-fill" href="#work">Selected work</a>
+				<a class="btn-ghost" href={`mailto:${site.email}`}>Get in touch</a>
+			</div>
+
+			<dl class="reveal mt-16 grid w-full max-w-2xl grid-cols-2 gap-y-8 border-t border-rule pt-10 sm:grid-cols-4">
+				{
+					snapshot.map((item) => (
+						<div>
+							<dt class="display text-3xl text-ink">{item.value}</dt>
+							<dd class="mono mt-2 text-ink-dim">{item.label}</dd>
+						</div>
+					))
+				}
+			</dl>
+		</div>
+	</section>
+
+	<section id="about" class="band">
+		<div class="wrap">
+			<SectionHeading index="01" label="About" title="What I actually do" />
+
+			<div class="wrap-narrow space-y-5 text-[1.02rem] leading-[1.8] text-ink-soft">
+				<p class="reveal">
+					I&rsquo;m a <span class="text-ink">data engineering</span> student in the Huntsman School of Business
+					at Utah State, graduating in 2027.
+				</p>
+				<p class="reveal">
+					At Pattern this summer I worked across <span class="text-ink">Airflow, Snowflake, Trino, and Spark</span>;
+					at USU I lead a team of four analysts with <span class="text-ink">SQL, Python, and Power BI</span> at
+					the Analytics Solutions Center. I work 20&ndash;30 hours a week and hold a 3.8 GPA.
+				</p>
+				<p class="reveal">
+					Outside of that: a home lab running Docker and local AI models, professional working
+					proficiency in Chinese and Japanese, and a year in Kansai, Japan that still shapes how I
+					work with people.
+				</p>
+			</div>
+
+			<div class="panel reveal wrap-narrow mt-14 p-7 text-center">
+				<p class="eyebrow">Education</p>
+				<h3 class="display mt-3 text-2xl">{education.degree}</h3>
+				<p class="display-italic mt-1 text-lg text-accent">{education.school}</p>
+				<p class="mono mt-3 text-ink-dim">
+					{education.schoolFull} · {education.location} · Graduating {education.graduation}
+				</p>
+				<ul class="mt-6 space-y-2 text-sm text-ink-soft">
+					{education.details.map((detail) => <li>{detail}</li>)}
+				</ul>
+			</div>
+		</div>
+	</section>
+
+	<section id="experience" class="band">
+		<div class="wrap">
+			<SectionHeading
+				index="02"
+				label="Experience"
+				title="Where I’ve worked"
+				lede="Five roles, one throughline: making data trustworthy enough to act on."
+			/>
+
+			<div>
+				{experience.map((job) => <ExperienceEntry job={job} />)}
+
+				<article class="row reveal">
+					<div>
+						<p class="mono text-ink-dim">{volunteer.period}</p>
+						<p class="mt-1 text-xs text-ink-dim">{volunteer.location}</p>
+					</div>
+					<div>
+						<h3 class="display text-xl text-ink">{volunteer.role}</h3>
+						<p class="display-italic mt-0.5 text-lg text-accent">{volunteer.organization}</p>
+						<ul class="mt-4 space-y-2.5 text-[0.95rem] leading-relaxed text-ink-soft">
+							{
+								volunteer.bullets.map((bullet) => (
+									<li class="relative pl-5">
+										<span
+											class="absolute left-0 top-[0.7em] h-1 w-1 rounded-full bg-accent-dim"
+											aria-hidden="true"
+										></span>
+										{bullet}
+									</li>
+								))
+							}
+						</ul>
+					</div>
+				</article>
+			</div>
+		</div>
+	</section>
+
+	<section id="work" class="band">
+		<div class="wrap">
+			<SectionHeading
+				index="03"
+				label="Selected work"
+				title="Things I’ve built"
+				lede="Each one has a short case study — the problem, what I did, and what came out of it."
+			/>
+
+			<div class="border-b border-rule">
+				{projects.map((project, index) => <ProjectCard project={project} index={index} />)}
+			</div>
+		</div>
+	</section>
+
+	<section id="skills" class="band">
+		<div class="wrap">
+			<SectionHeading index="04" label="Toolkit" title="What I work with" />
+
+			<div class="grid gap-10 sm:grid-cols-3">
+				{
+					skillGroups.map((group) => (
+						<div class="reveal text-center sm:text-left">
+							<p class="eyebrow">{group.label}</p>
+							<ul class="mt-4 flex flex-wrap justify-center gap-2 sm:justify-start">
+								{group.items.map((item) => (
+									<SkillPill label={item} />
+								))}
+							</ul>
+						</div>
+					))
+				}
+			</div>
+
+			<p class="reveal mt-12 border-t border-rule pt-8 text-center text-sm text-ink-soft">
+				<span class="display-italic text-ink">Languages</span> — {extras.languages.join(' & ')}.
+				<span class="display-italic ml-3 text-ink">Otherwise</span> — {extras.interests.join(', ')}.
+			</p>
+		</div>
+	</section>
+
+	<section id="contact" class="band">
+		<div class="wrap flex flex-col items-center text-center">
+			<p class="eyebrow reveal">05 — Contact</p>
+			<h2 class="display reveal mt-5 text-[clamp(2.2rem,6vw,4rem)]">
+				Let&rsquo;s build something
+				<span class="display-italic block text-accent">worth trusting.</span>
+			</h2>
+			<p class="lede reveal mt-6 max-w-md">
+				Open to data engineering internships and new grad roles. I usually reply within a day.
+			</p>
+			<div class="reveal mt-9 flex flex-wrap items-center justify-center">
+				<SocialIcons size="lg" show={['email', 'github', 'linkedin', 'ajdata']} />
+			</div>
+		</div>
+	</section>
+</PortfolioLayout>

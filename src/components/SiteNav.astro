@@ -1,0 +1,24 @@
+---
+import { nav, site } from '../config/site';
+
+const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '';
+const [first, last] = site.name.split(' ');
+---
+
+<header class="site-header">
+	<div class="wrap relative flex flex-col items-center py-4">
+		<a href="/" class="display text-[1.15rem] tracking-tight" aria-label={`${site.name} — home`}>
+			{first}<span class="display-italic text-accent"> {last}</span>
+		</a>
+		<nav class="mt-2.5 flex flex-wrap items-center justify-center gap-x-7 gap-y-1.5" aria-label="Main">
+			{
+				nav.map((item) => (
+					<a href={isHome ? item.href : `/${item.href}`} class="nav-link">
+						{item.label}
+					</a>
+				))
+			}
+		</nav>
+		<div class="scroll-progress" aria-hidden="true"></div>
+	</div>
+</header>

@@ -1,0 +1,30 @@
+---
+import type { Experience } from '../data/experience';
+
+type Props = { job: Experience };
+const { job } = Astro.props;
+---
+
+<article class="row reveal">
+	<div>
+		<p class="mono text-ink-dim">{job.period}</p>
+		<p class="mt-1 text-xs text-ink-dim">{job.location}</p>
+	</div>
+	<div>
+		<h3 class="display text-xl text-ink">{job.role}</h3>
+		<p class="display-italic mt-0.5 text-lg text-accent">{job.organization}</p>
+		<ul class="mt-4 space-y-2.5 text-[0.95rem] leading-relaxed text-ink-soft">
+			{
+				job.bullets.map((bullet) => (
+					<li class="relative pl-5">
+						<span class="absolute left-0 top-[0.7em] h-1 w-1 rounded-full bg-accent-dim" aria-hidden="true"></span>
+						{bullet}
+					</li>
+				))
+			}
+		</ul>
+		<ul class="mt-5 flex flex-wrap gap-1.5">
+			{job.tags.map((tag) => <li class="pill">{tag}</li>)}
+		</ul>
+	</div>
+</article>

@@ -1,0 +1,102 @@
+---
+import '../styles/global.css';
+import SiteNav from '../components/SiteNav.astro';
+import SocialIcons from '../components/SocialIcons.astro';
+import { site } from '../config/site';
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const { title, description = site.description } = Astro.props;
+const pageTitle = title ? `${title} · ${site.name}` : `${site.name} — ${site.role}`;
+const year = new Date().getFullYear();
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="color-scheme" content="dark" />
+		<meta name="theme-color" content="#0a0b0e" />
+		<meta name="description" content={description} />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={description} />
+		<meta property="og:type" content="website" />
+		<title>{pageTitle}</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@300;400;500&display=swap"
+			rel="stylesheet"
+		/>
+	</head>
+	<body>
+		<SiteNav />
+		<main>
+			<slot />
+		</main>
+		<footer class="border-t border-rule py-10">
+			<div class="wrap flex flex-col items-center gap-5 text-center">
+				<SocialIcons />
+				<p class="mono text-ink-dim">© {year} {site.name} · {site.location}</p>
+			</div>
+		</footer>
+		<script>
+			const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+			const reveals = document.querySelectorAll('.reveal');
+
+			if (!reduce) {
+				const observer = new IntersectionObserver(
+					(entries) => {
+						entries.forEach((entry) => {
+							if (entry.isIntersecting) {
+								entry.target.classList.add('visible');
+								observer.unobserve(entry.target);
+							}
+						});
+					},
+					{ threshold: 0.1, rootMargin: '0px 0px -8% 0px' },
+				);
+				reveals.forEach((el) => observer.observe(el));
+			} else {
+				reveals.forEach((el) => el.classList.add('visible'));
+			}
+
+			const parallaxEls = [...document.querySelectorAll<HTMLElement>('[data-speed]')];
+			let ticking = false;
+
+			const update = () => {
+				const y = window.scrollY;
+				const max = document.documentElement.scrollHeight - window.innerHeight;
+				const progress = max > 0 ? Math.min(1, Math.max(0, y / max)) : 0;
+				document.documentElement.classList.toggle('is-scrolled', y > 16);
+				document.documentElement.style.setProperty('--progress', progress.toFixed(4));
+
+				if (!reduce) {
+					parallaxEls.forEach((el) => {
+						const speed = Number(el.dataset.speed) || 0;
+						const offset = Math.max(-40, Math.min(40, y * speed));
+						el.style.transform = `translate3d(0, ${offset.toFixed(1)}px, 0)`;
+					});
+				}
+
+				ticking = false;
+			};
+
+			const onScroll = () => {
+				if (ticking) return;
+				ticking = true;
+				requestAnimationFrame(update);
+			};
+
+			window.addEventListener('scroll', onScroll, { passive: true });
+			update();
+		</script>
+	</body>
+</html>

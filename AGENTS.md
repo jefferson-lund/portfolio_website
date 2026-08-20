@@ -8,6 +8,20 @@ astro dev --background
 
 Manage the background server with `astro dev stop`, `astro dev status`, and `astro dev logs`.
 
+## GitHub
+
+This is a **personal** project. Use the `jefferson-lund` account only — not `jefferson-pattern`.
+
+- Before any `gh` command or GitHub MCP action, switch accounts:
+  ```bash
+  gh auth switch -h github.com -u jefferson-lund
+  ```
+- Verify with `gh auth status` that the active account is `jefferson-lund`.
+- Git remote must use the personal SSH host:
+  `git@github-lund:jefferson-lund/<repo>.git`
+- Do not push to or create resources under `jefferson-pattern` from this repo.
+- Commits in this repo should use the local git identity configured for `jefferson-lund`.
+
 ## Documentation
 
 Full documentation: https://docs.astro.build

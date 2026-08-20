@@ -17,6 +17,9 @@ pnpm-debug.log*
 .env
 .env.production
 
+# unscrubbed source notes — never publish
+internship_exp.md
+
 # macOS-specific files
 .DS_Store
 

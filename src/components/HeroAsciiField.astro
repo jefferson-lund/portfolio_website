@@ -1,0 +1,212 @@
+<div class="hero-title-wrap">
+	<canvas class="hero-ascii-field" aria-hidden="true"></canvas>
+	<div class="hero-title-content">
+		<slot />
+	</div>
+</div>
+
+<script>
+	const GLYPHS = ['·', '+', '×', '∙', '─', '│', '◦', '⋅', '*'];
+	const MOUSE_RADIUS = 160;
+	const MOUSE_FORCE = 0.022;
+	const SPRING = 0.03;
+	const DAMPING = 0.86;
+	const DRIFT = 0.55;
+	const ROT_SPEED = 0.055; // radians/sec, clockwise
+
+	type Particle = {
+		ox: number;
+		oy: number;
+		x: number;
+		y: number;
+		vx: number;
+		vy: number;
+		char: string;
+		size: number;
+		alpha: number;
+		phase: number;
+	};
+
+	function initHeroAsciiField(wrap: HTMLElement) {
+		if (wrap.dataset.asciiInit === 'true') return;
+		wrap.dataset.asciiInit = 'true';
+
+		const canvas = wrap.querySelector<HTMLCanvasElement>('.hero-ascii-field');
+		if (!canvas) return;
+
+		const ctx = canvas.getContext('2d');
+		if (!ctx) return;
+
+		const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		let particles: Particle[] = [];
+		let width = 0;
+		let height = 0;
+		let dpr = 1;
+		let mouseX = -9999;
+		let mouseY = -9999;
+		let scrollShift = 0;
+		let scrollFade = 1;
+		let raf = 0;
+		let time = 0;
+
+		const resize = () => {
+			const rect = wrap.getBoundingClientRect();
+			if (rect.width < 1 || rect.height < 1) return;
+
+			dpr = Math.min(window.devicePixelRatio || 1, 2);
+			width = rect.width;
+			height = rect.height;
+			canvas.width = Math.floor(width * dpr);
+			canvas.height = Math.floor(height * dpr);
+			canvas.style.width = `${width}px`;
+			canvas.style.height = `${height}px`;
+			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+			const cols = Math.max(16, Math.floor(width / 16));
+			const rows = Math.max(11, Math.floor(height / 15));
+			particles = [];
+
+			for (let row = 0; row < rows; row++) {
+				for (let col = 0; col < cols; col++) {
+					const ox = (col + 0.5) * (width / cols) + (Math.random() - 0.5) * 12;
+					const oy = (row + 0.5) * (height / rows) + (Math.random() - 0.5) * 10;
+					particles.push({
+						ox,
+						oy,
+						x: ox,
+						y: oy,
+						vx: 0,
+						vy: 0,
+						char: GLYPHS[Math.floor(Math.random() * GLYPHS.length)],
+						size: 10 + Math.random() * 4,
+						alpha: (0.16 + Math.random() * 0.2) * 1.69,
+						phase: Math.random() * Math.PI * 2,
+					});
+				}
+			}
+		};
+
+		const updateScroll = () => {
+			const rect = wrap.getBoundingClientRect();
+			const center = rect.top + rect.height / 2;
+			const viewMid = window.innerHeight * 0.45;
+			const delta = (center - viewMid) / window.innerHeight;
+			scrollShift = delta * 32;
+			scrollFade = Math.max(0.35, 1 - Math.abs(delta) * 0.9);
+		};
+
+		const onPointerMove = (event: PointerEvent) => {
+			const rect = canvas.getBoundingClientRect();
+			mouseX = event.clientX - rect.left;
+			mouseY = event.clientY - rect.top;
+		};
+
+		const onPointerLeave = () => {
+			mouseX = -9999;
+			mouseY = -9999;
+		};
+
+		const rotatePoint = (x: number, y: number, angle: number) => {
+			const cx = width / 2;
+			const cy = height / 2;
+			const dx = x - cx;
+			const dy = y - cy;
+			const cos = Math.cos(angle);
+			const sin = Math.sin(angle);
+			return {
+				x: cx + dx * cos + dy * sin,
+				y: cy - dx * sin + dy * cos,
+			};
+		};
+
+		const draw = () => {
+			if (!width || !height) return;
+
+			ctx.clearRect(0, 0, width, height);
+			time += 0.016;
+			const rotation = -time * ROT_SPEED;
+
+			for (const p of particles) {
+				const anchor = rotatePoint(p.ox, p.oy, rotation);
+				const dx = p.x - mouseX;
+				const dy = p.y - mouseY;
+				const dist = Math.hypot(dx, dy);
+
+				if (dist < MOUSE_RADIUS && dist > 0.001) {
+					const force = (1 - dist / MOUSE_RADIUS) * MOUSE_FORCE;
+					p.vx += (dx / dist) * force * 60;
+					p.vy += (dy / dist) * force * 60;
+				}
+
+				const targetX = anchor.x + Math.sin(time * 0.35 + p.phase) * DRIFT;
+				const targetY = anchor.y + scrollShift + Math.cos(time * 0.28 + p.phase) * DRIFT;
+
+				p.vx += (targetX - p.x) * SPRING;
+				p.vy += (targetY - p.y) * SPRING;
+				p.vx *= DAMPING;
+				p.vy *= DAMPING;
+				p.x += p.vx;
+				p.y += p.vy;
+
+				const twinkle = 0.7 + Math.sin(time * 1.4 + p.phase) * 0.3;
+				const alpha = p.alpha * scrollFade * twinkle;
+
+				ctx.font = `${p.size}px "IBM Plex Mono", ui-monospace, monospace`;
+				ctx.textAlign = 'center';
+				ctx.textBaseline = 'middle';
+				ctx.fillStyle = `rgba(224, 164, 88, ${alpha})`;
+				ctx.fillText(p.char, p.x, p.y);
+			}
+		};
+
+		const tick = () => {
+			updateScroll();
+			draw();
+			raf = requestAnimationFrame(tick);
+		};
+
+		const observer = new ResizeObserver(() => {
+			resize();
+		});
+		observer.observe(wrap);
+
+		const boot = () => {
+			resize();
+			updateScroll();
+			if (!width || !height) {
+				requestAnimationFrame(boot);
+				return;
+			}
+			draw();
+			if (!reduce) tick();
+		};
+
+		window.addEventListener('scroll', updateScroll, { passive: true });
+		window.addEventListener('pointermove', onPointerMove, { passive: true });
+		wrap.addEventListener('pointerleave', onPointerLeave);
+
+		requestAnimationFrame(() => requestAnimationFrame(boot));
+
+		document.addEventListener(
+			'astro:before-swap',
+			() => {
+				cancelAnimationFrame(raf);
+				observer.disconnect();
+				window.removeEventListener('scroll', updateScroll);
+				window.removeEventListener('pointermove', onPointerMove);
+				wrap.removeEventListener('pointerleave', onPointerLeave);
+			},
+			{ once: true },
+		);
+	}
+
+	function bootAll() {
+		document.querySelectorAll<HTMLElement>('.hero-title-wrap').forEach(initHeroAsciiField);
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', bootAll, { once: true });
+	} else {
+		bootAll();
+	}
+</script>
