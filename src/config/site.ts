@@ -4,7 +4,7 @@ export const site = {
 	role: 'Data Engineering',
 	description:
 		'Data engineering student who builds production Airflow pipelines, warehouse models, and dashboards teams rely on.',
-	url: 'https://jefferson-lund.github.io/personal_website',
+	url: 'https://portfolio.aj-data.com',
 	author: 'Jefferson Lund',
 	email: 'jlund2000@gmail.com',
 	phone: '(240) 810-5517',
